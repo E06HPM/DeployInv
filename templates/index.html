@@ -1,0 +1,15 @@
+<!-- index.html -->
+{% extends 'base.html' %}
+
+{% block title %}歡迎使用存貨預測系統{% endblock %}
+
+
+{% block content %}
+
+    <div class="text-center">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mt-6">{{ message }}</div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

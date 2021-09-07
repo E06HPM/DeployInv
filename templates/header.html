@@ -1,0 +1,38 @@
+<!-- header.html -->
+
+
+<nav class="navbar navbar-expand-lg" style="background-color:#7f1084;">
+    <div class="container-fluid">
+        <nav class="navbar navbar-light">
+            <a class="navbar-brand" style="font-size: 40px">
+                <img src="../static/images/AIDC_Taiwan_logo.svg" width="60" height="60"
+                     class="d-inline-block" alt="">存貨預測系統
+            </a>
+        </nav>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+            {% if username %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" style="font-size: 25px" aria-current="page" href="/predict">存貨預測</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" style="font-size: 25px" aria-current="page" href="/training">模型訓練</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" style="font-size: 25px" aria-current="page" href="/admin">後台管理</a>
+                    </li>
+
+                </ul>
+                <ul class="navbar-nav navbar-right">
+                    <li class="nav-item">
+                        <a class="nav-link active" style="font-size: 25px" aria-current="page" href="/logout">登出</a>
+                    </li>
+                </ul>
+                {% endif %}
+
+
+            </ul>
+        </div>
+    </div>
+</nav>

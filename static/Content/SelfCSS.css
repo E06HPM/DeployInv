@@ -1,0 +1,475 @@
+﻿body {
+    background-image: url('../Images/background.png');
+    background-size: contain;
+}
+
+form {
+    margin-bottom: 0px;
+}
+
+/**************登入頁*************/
+.login-header h3 {
+    color: #191834;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.155em;
+}
+
+.login-header h4 {
+    color: #191834;
+    text-align: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+}
+
+.login-header img {
+    margin-bottom: 10px;
+    width: 150px;
+}
+
+.forget_password {
+    background: transparent;
+    color: #670133;
+    text-decoration: underline;
+}
+
+    .forget_password:hover {
+        color: #887f6c;
+        text-decoration: underline;
+        outline: none;
+        box-shadow: none;
+    }
+
+    .forget_password:focus, .forget_password:active {
+        color: #887f6c;
+        text-decoration: underline;
+        outline: none;
+        box-shadow: none;
+    }
+
+.form-control:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: #f9f9f9;
+    outline: 0;
+    box-shadow: 0 0 0 0.1rem rgb(152 140 132 / 54%);
+}
+/*********************************/
+
+/**************首頁導覽列*************/
+/*導覽列背景顏色*/
+.bg-light {
+    background-color: #ffffff !important;
+}
+/*導覽列上下間隔縮小*/
+.navbar {
+    padding: 0 !important;
+}
+/*選單置中*/
+.navbar-center {
+    margin: 0 auto;
+}
+/*LOGO*/
+.logo_img {
+    height: 60px;
+}
+/*右側按鈕區塊*/
+.bar_link_div {
+    margin-right: 50px;
+    text-align: right;
+}
+/*右側icon*/
+.bar_link_img {
+    width: 25px;
+}
+/*選單導覽列背景顏色*/
+.bg-dark {
+    background-color: #741918 !important;
+}
+/*選單導覽列文字顏色*/
+.navbar-dark .navbar-nav .nav-link {
+    color: white;
+}
+
+.navbar-nav .nav-link {
+    padding-right: 0;
+    padding-left: 1rem;
+}
+/*********************************/
+
+/**************按鈕*************/
+/*圖片型按鈕*/
+.img_button, .img_button:focus {
+    border: none;
+    outline: none;
+    background: none;
+}
+/*紫色按鈕*/
+.btn-purple {
+    background-color: #670133;
+    color: white;
+    border: 1px solid white;
+}
+
+    .btn-purple:focus, .btn-purple:hover {
+        background-color: #670133;
+        color: #ffecc1;
+        border: 1px solid white;
+        box-shadow: none !important;
+    }
+/*紫色按鈕2*/
+.btn-purple2 {
+    background-color: #670133;
+    color: white;
+    border: 1px solid #670133;
+    margin: 0px 5px;
+    border-radius: 10px;
+}
+
+    .btn-purple2:focus, .btn-purple2:hover {
+        background-color: #670133;
+        color: #ffecc1;
+        border: 1px solid white;
+        box-shadow: none !important;
+    }
+/*灰色按鈕*/
+.btn-gray {
+    background-color: lightgray;
+}
+
+    .btn-gray:focus, .btn-gray:hover {
+        background-color: #eaeaea;
+        border: 1px solid #eaeaea;
+        box-shadow: none !important;
+    }
+/*disabled超連結*/
+a.disabled {
+    pointer-events: none;
+    cursor: default;
+    background-color: gray;
+}
+
+/*電話及小地圖ICON*/
+.store_icon {
+    width: 25px;
+    margin-right: 15px;
+}
+
+/*無資料的電話、小地圖及FB ICON*/
+.store_icon_no_data {
+    cursor: default;
+    pointer-events: none;
+}
+
+/*商店列表的FB ICON*/
+.store_fb_icon {
+    width: 25px;
+    margin: -7px 0 0 10px;
+}
+/*********************************/
+
+/**************DIV系列*************/
+/*body起始位置*/
+.body-content {
+    margin-top: 50px;
+    padding: 0 !important;
+}
+/*店家列表標題DIV*/
+.store_list_title {
+    margin: 30px 0px 15px;
+    font-size: 2rem;
+    color: #670133;
+    text-align: center;
+}
+/*搜尋區DIV*/
+.search_div {
+}
+/*商店列表DIV*/
+.store_list_div {
+    margin: 30px 0px 10px;
+}
+/*卡片外框*/
+.card {
+    border-radius: 1rem;
+    box-shadow: 0px 0px 8px 0px #b9ada2;
+    margin-bottom: 20px;
+    border: none;
+}
+/*卡片內容區域大小*/
+.card-text {
+    height: 120px;
+    overflow: auto;
+}
+
+.card-body > .row {
+    margin: 0px;
+}
+
+/*公司簡介內容區塊*/
+.about_div {
+    border: 3px solid #741918;
+    border-radius: 15px;
+    padding: 3rem;
+    font-size: 1.5rem;
+    background-color: #fff6ef;
+}
+
+/*最新消息卡片按鈕*/
+.news_card {
+    cursor: pointer;
+}
+
+    .news_card:hover {
+        border: 2px solid white;
+    }
+
+.news_card_head {
+    font-size: 1.75rem;
+    color: white;
+    background-color: #670133 !important;
+}
+
+.news_card_body {
+    font-size: 1.25rem;
+    line-height: 40px;
+    padding: 2rem;
+    background-color: #fff6f6;
+}
+
+/*商店列表電話及地圖*/
+.store_icon_div {
+    margin-top: 5px;
+}
+
+/*商店列表分隔線*/
+.store_line {
+    width: 100%;
+    height: 1px;
+    background-color: #cacaca;
+    margin-bottom: 10px;
+}
+/*********************************/
+/**************文字系列*************/
+.card-title {
+    color: #670133;
+    font-size: 1.5rem;
+}
+/*店家列表的搜尋中顯示文字*/
+.display_text1 {
+    font-size: 1.25rem;
+    margin: 0 auto;
+}
+/*店家列表的搜尋列的文字*/
+.display_text2 {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #56002b;
+}
+
+.about_li {
+    padding-left: 2rem;
+    text-indent: -2rem;
+}
+/*********************************/
+/**************圖片系列*************/
+/*卡片上的照片*/
+.card-img-top {
+    height: 200px;
+    border-radius: 1rem 1rem 0rem 0rem;
+}
+
+.store_list_title_img {
+    width: 25px;
+}
+
+.news_content_img {
+    width: 50%;
+    margin: 10px;
+    float: right;
+}
+
+.news_content_img2 {
+    width: 45%;
+    margin: 10px;
+}
+/*********************************/
+/**************輸入框系列*************/
+/*下拉式選單*/
+.edit_drop {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #670133;
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 1.1rem;
+    color: #670133;
+    margin: 0px 5px;
+}
+
+    .edit_drop:focus {
+        outline: none;
+        /*border: 2px solid #bfcef7;*/
+    }
+
+/*編輯文字輸入框(滿版，用於表格)*/
+.edit_text {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #670133;
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-size: 1.1rem;
+    color: #670133;
+    margin: 0px 5px;
+}
+
+    .edit_text:focus {
+        outline: none;
+        /*border: 2px solid #bfcef7;*/
+    }
+
+    /*.edit_text:read-only {
+        background-color: #425584;
+        border: 2px solid #425584;
+        color: #ffffff;
+    }*/
+
+    .edit_text::-webkit-input-placeholder {
+        color: #cccccc;
+    }
+/*隱藏輸入框*/
+.hide_text {
+    display: none;
+}
+/*********************************/
+
+/**************modal彈出視窗*************/
+.modal-header {
+    background-color: rgba(0,0,0,.03);
+}
+/*********************************/
+
+/**************後臺管理*************/
+/*後台整版樣式*/
+.back_sys_div {
+    height: 100%;
+    background-color: #def;
+}
+/*後台整版樣式*/
+.back_sys_logo {
+    width: 3rem;
+}
+
+.sidebar-brand {
+    padding: 0.5em;
+}
+/*後台整版標題*/
+.back_sys_title {
+    color: #191874;
+    font-size: 1.2em;
+}
+
+#menu-tab .nav-item .nav-link {
+    border-radius: 15px 15px 0px 0px;
+}
+/*選單頁籤*/
+.nav-tabs {
+    border-bottom: 1px solid #197418;
+}
+/*選單頁籤*/
+#menu-tab .active {
+    color: black;
+    background-color: #fff;
+}
+/*選單頁籤*/
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    border-color: #197418 #197418 #197418;
+}
+/*選單頁籤*/
+.nav-tabs .nav-item.show .nav-link, .nav-tabs a:hover {
+    border: none !important;
+    background-color: white !important;
+}
+/*選單滑鼠*/
+.nav-cursor {
+    cursor: pointer
+}
+/*選單icon*/
+.menuViews_icon {
+    color: #4948f4;
+}
+/**/
+#menu-tab .nav-link {
+    color: #434343;
+}
+
+/*menu項目 hover*/
+#main-menu .nav-link:hover {
+    background-color: white;
+    color: black;
+}
+
+#main-menu .nav-link[data-toggle].collapsed:after {
+    color: darkblue;
+    font-family: "Font Awesome 5 Free";
+    content: "\f055";
+    display: inline-block;
+    font-weight: 900;
+    vertical-align: middle;
+    padding-left: 5px;
+    padding-bottom: 3px;
+}
+
+#main-menu .nav-link[data-toggle]:not(.collapsed):after {
+    color: brown;
+    font-family: "Font Awesome 5 Free";
+    content: "\f056";
+    display: inline-block;
+    font-weight: 900;
+    vertical-align: middle;
+    padding-left: 5px;
+    padding-bottom: 3px;
+}
+/*********************************/
+
+
+@media (max-width: 992px) {
+}
+
+@media (max-width: 768px) {
+    .edit_text {
+        margin: 0px 2px;
+    }
+
+    .edit_drop {
+        margin: 0px 2px;
+    }
+
+    .btn-purple2 {
+        margin: 0px 2px;
+    }
+}
+
+@media (max-width: 576px) {
+    .edit_text {
+        margin: 2px 0px;
+    }
+
+    .edit_drop {
+        margin: 2px 0px;
+    }
+
+    .btn-purple2 {
+        margin: 2px 0px;
+    }
+    .news_content_img {
+        width: 60%;
+        margin: 10px;
+        float: right;
+    }
+
+    .news_content_img2 {
+        width: 100%;
+        margin: 10px;
+    }
+}

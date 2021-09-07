@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>存貨預測系統</title>
+    <link rel="stylesheet" href="{% static '/Content/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '/Content/_link.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '/Content/_font.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '/Content/Login.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '/Content/bootstrap4.min.css' %}">
+    <script src="/static/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="/static/Scripts/bootstrap4.min.js"></script>
+    <link href="/static/Content/SelfCSS.css" rel="stylesheet"/>
+    <style>
+        i {
+            width: 85px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+{% csrf_token %}
+<div class="container" style="position: relative; top:100px; ">
+    <div class="row  justify-content-center align-items-center">
+        <div class="col-lg-6 col-sm-8">
+            <div class="card ">
+                <div class="login-header card-header">
+                    <div class="d-flex justify-content-center">
+                        <img src="{% static 'images/AIDC_Taiwan_logo.svg' %}"
+                             style="width:200px;height:240px;padding:3px;"/>
+                    </div>
+                    <h1 class="center" style="text-align: center;font-family: 微軟正黑體; font-weight:bold: center">
+                        漢翔航空工業股份有限公司</h1>
+                    <h1 class="center" style="text-align: center;font-family: 微軟正黑體; font-weight:bold: center">
+                        存貨預測系統</h1>
+                    <h3 style="background-color:black;color:white;">AI Inventory System</h3>
+                </div>
+                <div class="card-body">
+                    <form action="/" method="POST">
+                        {% csrf_token %}
+                        <div class="input-group form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user"> 帳號</i></span>
+
+                            </div>
+                            <input type="text" class="form-control" id="user_id"
+                                   name="user_id" placeholder="請輸入帳號">
+
+
+                        </div>
+                        <div class="input-group form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-key"> 密碼</i></span>
+                            </div>
+                            <input type="password" class="form-control" id="user_pwd"
+                                   name="user_pwd" placeholder="請輸入密碼">
+
+                        </div>
+
+
+                        <div class="form-group" style="vertical-align: middle;text-align:right;">
+
+
+                            <button class="w-100 btn btn-lg " style="background-color:#7f1084; color:#ecf0f1"
+                                    type="submit">登入
+                            </button>
+
+
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-center">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>

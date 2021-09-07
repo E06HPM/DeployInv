@@ -1,0 +1,1402 @@
+<!-- preditction.html -->
+{% extends 'base.html' %}
+
+{% block title %}歡迎使用存貨預測系統{% endblock %}
+
+
+{% block content %}
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-2 align-self-top">
+
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+                <form action="" method="POST" onSubmit="">
+                    {% csrf_token %}
+                    <label style="font-size: 20px; margin-top: 20px">期別</label>
+                    <select id="period-list" class="form-select" name="name_period"
+                            aria-label="Default select example"
+                            onchange="changePeriod(this.selectedIndex)">
+                    </select>
+
+                    <label style="font-size: 20px; margin-top: 20px">演算法</label>
+                    <select id="algorithm-list" class="form-select" name="name_algorithm"
+                            aria-label="Default select example">
+                    </select>
+
+
+                    <label id="date-start-input-label" style="font-size: 20px; margin-top: 20px">預測起始日</label>
+                    <label id="min-date-start-input-label"
+                           style="font-size: 10px; color: #9d9d9d">最小允許日期{{ str_min_data }}</label>
+                    <div class="input-group date" id='date_start'>
+
+                        <input type="text" id="date-start-input" name="name_date_start" class="form-control"
+                               value="{{ str_min_data }}"/>
+                        <span class="input-group-addon">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </span>
+                    </div>
+
+
+                    <label id="date-end-input-label" style="font-size: 20px; margin-top: 20px">預測結束日</label>
+                    <label id="max-date-end-input-label"
+                           style="font-size: 10px; color: #9d9d9d">最大允許日期{{ str_latest_data }}</label>
+
+                    <div class="input-group date" id='date_end'>
+                        <input type="text" id="date-end-input" name="name_date_end" class="form-control"
+                               value="{{ str_latest_data }}"/>
+                        <span class="input-group-addon">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </span>
+                    </div>
+
+                    <div id="single-input" class="not-visible">
+                        <label id="input-label" style="font-size: 20px; margin-top: 20px">單期預測特徵</label>
+                        <div class="input-group date mb-1" >
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">預測日期</span>
+                            </div>
+                            <input id='date_input' type="text" name="name_date_input" class="form-control" />
+                            <span class="input-group-addon">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </span>
+                        </div>
+{#                        <div class="input-group mb-1">#}
+{#                            <div class="input-group-prepend">#}
+{#                                <span class="input-group-text">收　　益</span>#}
+{#                            </div>#}
+{#                            <input type="text" class="form-control" aria-label="Default"#}
+{#                                   aria-describedby="inputGroup-sizing-default" id="revenue-input" name="name_revenue">#}
+{#                        </div>#}
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"">領用項數</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                   aria-describedby="inputGroup-sizing-default" id="requisition-qty-input"
+                                   name="name_requisition_qty">
+                        </div>
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">請購項數</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                   aria-describedby="inputGroup-sizing-default" id="request-qty-input"
+                                   name="name_request_qty">
+                        </div>
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">請購金額</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                   aria-describedby="inputGroup-sizing-default" id="request-amount-input"
+                                   name="name_request_amount">
+                        </div>
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">報廢金額</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default"
+                                   aria-describedby="inputGroup-sizing-default" id="scrapped-amount-input"
+                                   name="name_scrapped_amount">
+                        </div>
+                    </div>
+
+
+                    <input class="btn "
+                           style="font-size:20px; background-color:#7f1084; color:#ecf0f1; margin-top: 10px"
+                           type="submit" name="training" value="成本預測" onclick="showSpinner()">
+
+                </form>
+
+
+            </div>
+
+            <div id="spinner-box" class="text-center mt-3 not-visible">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+        {% if post_training %}
+            <div id="col_container" class="col align-self-center not-visible">
+                <div id="container_div" class="text-center mt-3 not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383; ">
+                    <div id="container_single" style="width:1500px; height: 740px;"></div>
+                </div>
+            </div>
+
+
+
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="raw_mat_cost_wo" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="raw_mat_cost" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+        {% endif %}
+
+        </div>
+
+        {% if post_training %}
+            <div class="row">
+
+                <div class="col-2">
+
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="semi_fin_prod_cost_wo" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="semi_fin_prod_cost" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-2">
+
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="wip_prod_cost_wo" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="wip_prod_cost" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-2">
+
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="invt_cost_wo" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+                <div name="fig" class="col align-self-center not-visible"
+                     style="border-width:1px;border-style:dashed;border-color: #848383">
+                    <div id="invt_cost" style="width: 700px; height: 400px; margin: 0;"></div>
+                </div>
+            </div>
+        {% endif %}
+
+
+    </div>
+
+
+    <script>
+        $(function () {
+            $('#date_start').datepicker({
+                startView: 3,
+                minView: 3,
+                autoclose: 'true',
+                format: 'yyyy-mm',
+                language: 'zh-TW',
+            });
+        });
+        $(function () {
+            $('#date_end').datepicker({
+                startView: 3,
+                minView: 3,
+                autoclose: 'true',
+                format: 'yyyy-mm',
+                language: 'zh-TW',
+            });
+        });
+        $(function () {
+            $('#date_input').datepicker({
+                startView: 3,
+                minView: 3,
+                autoclose: 'true',
+                format: 'yyyy-mm',
+                language: 'zh-TW',
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+        function setSelectedValue(selectObj, valueToSet) {
+            for (var i = 0; i < selectObj.options.length; i++) {
+                if (selectObj.options[i].value == valueToSet) {
+                    selectObj.options[i].selected = true;
+                    return;
+                }
+            }
+        }
+
+        var param = {{param|safe}};
+
+        var period = ['多期預測', '單期預測'];
+        var periodSelect = document.getElementById("period-list");
+        var inner = "";
+
+        for (var i = 0; i < period.length; i++) {
+            inner = inner + '<option value =' + i + '>' + period[i] + '</option>';
+        }
+        periodSelect.innerHTML = inner;
+
+
+        setSelectedValue(periodSelect, param['period_type']);
+
+        var algorithms = new Array();
+        algorithms[0] = ['SARIMA', 'Holt Winters'];
+        algorithms[1] = ['Random Forest', 'MARS'];
+
+        function changePeriod(index) {
+            var Ainner = "";
+            for (var i = 0; i < algorithms[index].length; i++) {
+                Ainner = Ainner + '<option value =' + i + '>' + algorithms[index][i] + '</option>';
+            }
+            var algorithmSelect = document.getElementById("algorithm-list");
+            algorithmSelect.innerHTML = Ainner;
+
+            var objSelect3 = document.getElementById("algorithm-list");
+            setSelectedValue(objSelect3, param['algorithm_type']);
+
+            if (index === 1) {
+                document.getElementById("date-start-input").classList.add('not-visible')
+                document.getElementById("date-end-input").classList.add('not-visible')
+                document.getElementById("date-end-input-label").classList.add('not-visible')
+                document.getElementById("max-date-end-input-label").classList.add('not-visible')
+                document.getElementById("date-start-input-label").classList.add('not-visible')
+                document.getElementById("min-date-start-input-label").classList.add('not-visible')
+                document.getElementById("single-input").classList.remove('not-visible')
+                document.getElementById("col_container").classList.remove('not-visible')
+
+
+                document.getElementById("date_input").value = param['date_input']
+                document.getElementById("revenue-input").value = param['revenue']
+                document.getElementById("requisition-qty-input").value = param['requisition_qty']
+                document.getElementById("request-qty-input").value = param['request_qty']
+                document.getElementById("scrapped-amount-input").value = param['scrapped_amount']
+                document.getElementById("request-amount-input").value = param['request_amount']
+            } else {
+                document.getElementById("date-start-input").classList.remove('not-visible')
+                document.getElementById("date-end-input").classList.remove('not-visible')
+                document.getElementById("date-end-input-label").classList.remove('not-visible')
+                document.getElementById("max-date-end-input-label").classList.remove('not-visible')
+                document.getElementById("date-start-input-label").classList.remove('not-visible')
+                document.getElementById("min-date-start-input-label").classList.remove('not-visible')
+                document.getElementById("single-input").classList.add('not-visible')
+                document.getElementById("col_container").classList.add('not-visible')
+
+
+            }
+
+        }
+
+        changePeriod(document.getElementById("period-list").selectedIndex);
+
+
+    </script>
+
+    <script type="text/javascript">
+        function showSpinner() {
+            document.getElementById('spinner-box').classList.remove('not-visible')
+            document.getElementById("container_div").classList.add('not-visible')
+            var x = document.getElementsByName("fig");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                x[i].classList.add('not-visible')
+            }
+        }
+
+        const spinnerBox = document.getElementById('spinner-box')
+
+        $.ajax({
+            type: 'GET',
+            url: '/predict/',
+            success: function (response) {
+                spinnerBox.classList.add('not-visible')
+
+                if (document.getElementById('period-list').value === '0') {
+                    var x = document.getElementsByName("fig");
+                    var i;
+                    for (i = 0; i < x.length; i++) {
+                        x[i].classList.remove('not-visible')
+                    }
+                    console.log('***************************************')
+                } else {
+                    document.getElementById("container_div").classList.remove('not-visible')
+                }
+
+
+            },
+            error: function (error) {
+                console.log(error)
+
+            }
+        })
+    </script>
+
+    {# 單期  #}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'bar',
+            };
+            var title = {
+                text: '單期存貨預測',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                categories: ['原物料', '半成品', '在製品', '總存貨'],
+                title: {
+                    text: '存貨成本',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+
+                bar: {
+                    dataLabels: {
+                        enabled: true
+                    }
+                },
+
+
+            };
+
+            var single_data = {{ single_output|safe }};
+            var sin_data = [single_data['raw_mat_cost'], single_data['semi_fin_prod_cost'], single_data['wip_prod_cost'], single_data['invt_cost']];
+            var sin_data_wo = [single_data['raw_mat_cost_wo'], single_data['semi_fin_prod_cost_wo'], single_data['wip_prod_cost_wo'], single_data['invt_cost_wo']];
+            var revenue = [single_data['revenue'], single_data['revenue'], single_data['revenue'], single_data['revenue']];
+
+            var series = [
+                {
+                    name: '不含Write-OFF ',
+                    data: sin_data_wo
+                },
+                {
+                    name: '含Write-OFF ',
+                    data: sin_data
+                },
+                {
+                    name: '營收',
+                    data: revenue
+                },
+            ];
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#container_single').highcharts(json);
+
+        });
+    </script>
+
+
+    {#原物料存貨金額(不含write-OFF)#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline',
+            };
+            var title = {
+                text: '原物料存貨金額(不含write-OFF)',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_raw_mat_cost_wo|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.raw_mat_cost_wo|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#raw_mat_cost_wo').highcharts(json);
+
+        });
+    </script>
+    {#原物料存貨金額#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline',
+            };
+            var title = {
+                text: '原物料存貨金額',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}',
+                style: {
+                    fontSize: '16',
+                },
+
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_raw_mat_cost|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.raw_mat_cost|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#raw_mat_cost').highcharts(json);
+
+        });
+    </script>
+    {#半製品存貨金額(不含WRITE-OFF)#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '半製品存貨金額(不含WRITE-OFF)',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    }
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_semi_fin_prod_cost_wo|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.semi_fin_prod_cost_wo|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#semi_fin_prod_cost_wo').highcharts(json);
+
+        });
+    </script>
+    {#半製品存貨金額#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '半製品存貨金額',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    }
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_semi_fin_prod_cost|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.semi_fin_prod_cost|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            ;var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#semi_fin_prod_cost').highcharts(json);
+
+        });
+    </script>
+    {#在製品存貨金額(不含WRITE-OFF)#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '在製品存貨金額(不含WRITE-OFF)',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    }
+
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_wip_prod_cost_wo|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.wip_prod_cost_wo|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            ;var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#wip_prod_cost_wo').highcharts(json);
+
+        });
+    </script>
+    {#在製品存貨金額#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '在製品存貨金額',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20'
+                    }
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_wip_prod_cost|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.wip_prod_cost|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            ;var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#wip_prod_cost').highcharts(json);
+
+        });
+    </script>
+    {#總存貨金額(不含WRITE-OFF)#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '總存貨金額(不含WRITE-OFF)',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20'
+                    }
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_invt_cost_wo|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.invt_cost_wo|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            ;var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#invt_cost_wo').highcharts(json);
+
+        });
+    </script>
+    {#總存貨金額#}
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '總存貨金額',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+            };
+            var subtitle = {
+                text: ''
+            };
+            var xAxis = {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000 * 30,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20'
+                    }
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+
+            };
+            var output = {{ result_pred.orig_invt_cost|safe }};
+            var history_data = []
+            for (var k in output.year) {
+                history_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+            var output = {{ result_pred.invt_cost|safe }};
+            var predicttion_data = []
+            for (var k in output.year) {
+                predicttion_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            ;var output = {{ result_pred.revenue|safe }};
+            var revenue_data = []
+            for (var k in output.year) {
+                revenue_data.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            ;
+
+            var series = [
+                {
+                    name: '歷史存貨',
+                    data: history_data,
+                },
+                {
+                    name: '預測存貨',
+                    data: predicttion_data,
+                },
+                {
+                    name: '預測營收',
+                    data: revenue_data,
+                },
+            ];
+
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#invt_cost').highcharts(json);
+
+        });
+    </script>
+
+
+{% endblock %}

@@ -1,0 +1,385 @@
+<!-- preditction.html -->
+{% extends 'base.html' %}
+
+{% block title %}歡迎使用存貨預測系統{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-2 align-self-top">
+
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+                <form action="" method="POST" onsubmit="return validate(this)">
+                    {% csrf_token %}
+
+                    <label style="font-size: 20px; margin-top: 20px">存貨種類</label>
+                    <select id="cost-list" class="form-select" name="name_cost" aria-label="Default select example"
+                            onchange="disableContainer();">
+
+                    </select>
+
+                    <label style="font-size: 20px; margin-top: 20px">期別</label>
+                    <select id="period-list" class="form-select" name="name_period" aria-label="Default select example"
+                            onchange="changePeriod(this.selectedIndex); disableContainer();">
+
+                    </select>
+
+                    <label style="font-size: 20px; margin-top: 20px">演算法</label>
+                    <select id="algorithm-list" class="form-select" name="name_algorithm"
+                            aria-label="Default select example" onchange="disableContainer();">
+                    </select>
+
+                    <label id="date-start-input-label" style="font-size: 20px; margin-top: 20px">訓練集起始日</label>
+                    <label id="min-date-start-input-label"
+                           style="font-size: 10px; color: #9d9d9d">最小允許日期{{ str_min_data }}</label>
+
+                    <div class="input-group date" id='date_start'>
+
+                        <input type="text" id="date-start-input" name="name_date_start" class="form-control"
+                               value="" onchange="disableContainer();"/>
+                        <span class="input-group-addon">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </span>
+                    </div>
+
+                    <label id="date-end-input-label" style="font-size: 20px; margin-top: 20px">訓練集結束日</label>
+                    <label id="max-date-end-input-label"
+                           style="font-size: 10px; color: #9d9d9d">最大允許日期{{ str_latest_data }}</label>
+
+                    <div class="input-group date" id='date_end'>
+
+
+                        <input type="text" id="date-end-input" name="name_date_end" class="form-control"
+                               value="" onchange="disableContainer();"/>
+                        <span class="input-group-addon">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </span>
+                    </div>
+
+                    <input class="btn "
+                           style="font-size:20px; background-color:#7f1084; color:#ecf0f1; margin-top: 10px"
+                           type="submit" name="training" value="訓練模型" onclick="showSpinner()">
+
+                    {% if post_training %}
+                        <input id="savingBtn" class="btn "
+                               style="font-size:20px; background-color:#7f1084; color:#ecf0f1; margin-top: 10px"
+                               type="submit" name="saving" value="儲存模型" onchange="disableContainer();">
+                    {% endif %}
+
+                </form>
+
+
+            </div>
+            <div class="col align-self-center">
+                <div id="spinner-box" class="text-center mt-3 not-visible">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                {% if post_training %}
+
+                    <div id="container_div" class="text-center mt-3 not-visible"
+                         style="border-width:1px;border-style:dashed;border-color: #848383; ">
+                        <div id="container_output" style="width:1500px; height: 740px;"></div>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <script language="JavaScript">
+        $(document).ready(function () {
+            var chart = {
+                type: 'spline'
+            };
+            var title = {
+                text: '存貨成本訓練結果',
+                style: {
+                    fontWeight: 'bold',
+                    fontSize: '36',
+                },
+
+            };
+            var subtitle = {
+                text: '訓練誤差MAPE:' + {{ mape }}.toString() + '%',
+                style: {
+                    fontSize: '20',
+                },
+            };
+
+
+            var xAxis = {
+                type: 'datetime',
+                minTickInterval: 28 * 24 * 3600 * 1000,
+                title: {
+                    text: '日期',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+
+            };
+            var yAxis = {
+                title: {
+                    text: '金額',
+                    style: {
+                        fontSize: '20',
+                    },
+                },
+                labels: {
+                    style: {
+                        fontSize: '18'
+                    },
+                    formatter: function () {
+                        if (this.value >= 0) {
+                            return '$' + this.value / 100000000 + '億'
+                        } else {
+                            return '-$' + (-this.value / 100000000) + '億'
+                        }
+                    }
+                },
+
+            };
+            var tooltip = {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x: %b \'%y}: {point.y:.0f}'
+            };
+            var plotOptions = {
+                series: {
+                    label: {
+                        enabled: false
+                    },
+                },
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                },
+            };
+
+
+            var series_set = [];
+
+
+            var output = {{ training_dataset|safe }};
+            var trainingset = [];
+            for (var k in output.year) {
+                trainingset.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            var obj = {
+                name: null,
+                data: null,
+            };
+            obj.name = '訓練集';
+            obj.data = trainingset;
+            series_set.push(obj);
+
+            if ({{ testing_dataset|safe }} !==
+            0
+        )
+            {
+                var output = {{ testing_dataset|safe }};
+                var testingset = [];
+                for (var k in output.year) {
+                    testingset.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+                }
+                var obj = {
+                    name: null,
+                    data: null,
+                };
+                obj.name = '測試集';
+                obj.data = testingset;
+                series_set.push(obj);
+            }
+
+            var output = {{ prediction_dateset|safe }};
+            var predictionset = [];
+            for (var k in output.year) {
+                predictionset.push([Date.UTC(output.year[k], output.month[k] - 1, 1), output.value[k]]);
+            }
+            var obj = {
+                name: null,
+                data: null,
+            };
+            obj.name = '預測存貨';
+            obj.data = predictionset;
+            series_set.push(obj);
+
+            var series = series_set
+
+            console.log(typeof series)
+            var legend = {
+                itemStyle: {
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                }
+            };
+
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.subtitle = subtitle;
+            json.tooltip = tooltip;
+            json.xAxis = xAxis;
+            json.yAxis = yAxis;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            json.legend = legend;
+            $('#container_output').highcharts(json);
+
+        });
+    </script>
+    <script>
+        $(function () {
+            $('#date_start').datepicker({
+                startView: 3,
+                minView: 3,
+                autoclose: 'true',
+                format: 'yyyy-m',
+                language: 'zh-TW',
+            });
+        });
+        $(function () {
+            $('#date_end').datepicker({
+                startView: 3,
+                minView: 3,
+                autoclose: 'true',
+                format: 'yyyy-m',
+                language: 'zh-TW',
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+        var cost = {
+            'raw_mat_cost_wo': '原物料存貨金額(不含WRITE-OFF)',
+            'semi_fin_prod_cost_wo': '半製品存貨金額(不含WRITE-OFF)',
+            'wip_prod_cost_wo': '在製品存貨金額(不含WRITE-OFF)',
+            'invt_cost_wo': '總存貨金額(不含WRITE-OFF)',
+            'raw_mat_cost': '原物料存貨金額',
+            'semi_fin_prod_cost': '半製品存貨金額',
+            'wip_prod_cost': '在製品存貨金額',
+            'invt_cost': '總存貨金額',
+            'revenue':'營收'
+        };
+
+        function setSelectedValue(selectObj, valueToSet) {
+            for (var i = 0; i < selectObj.options.length; i++) {
+                if (selectObj.options[i].value == valueToSet) {
+                    selectObj.options[i].selected = true;
+                    return;
+                }
+            }
+        }
+
+        var param = {{param|safe}};
+
+        var costSelect = document.getElementById("cost-list");
+        var inner = "";
+
+        for (var i in cost) {
+            inner = inner + '<option value =' + i + '>' + cost[i] + '</option>';
+        }
+        costSelect.innerHTML = inner;
+
+        //Get select object
+        var objSelect = document.getElementById("cost-list");
+        //Set selected
+        setSelectedValue(objSelect, param['cost_type']);
+
+
+        var period = ['多期預測', '單期預測'];
+        var periodSelect = document.getElementById("period-list");
+        var inner = "";
+        document.getElementById("cost-list")
+
+        for (var i = 0; i < period.length; i++) {
+            inner = inner + '<option value =' + i + '>' + period[i] + '</option>';
+        }
+        periodSelect.innerHTML = inner;
+
+        var objSelect2 = document.getElementById("period-list");
+        setSelectedValue(objSelect2, param['period_type']);
+
+        var algorithms = new Array();
+        algorithms[0] = ['SARIMA', 'Holt Winters'];
+        algorithms[1] = ['Random Forest', 'MARS'];
+
+        function changePeriod(index) {
+            var Ainner = "";
+            for (var i = 0; i < algorithms[index].length; i++) {
+                Ainner = Ainner + '<option value =' + i + '>' + algorithms[index][i] + '</option>';
+            }
+            var algorithmSelect = document.getElementById("algorithm-list");
+            algorithmSelect.innerHTML = Ainner;
+
+            var objSelect3 = document.getElementById("algorithm-list");
+            setSelectedValue(objSelect3, param['algorithm_type']);
+
+            if (index === 1) {
+                document.getElementById("date-start-input").classList.add('not-visible')
+                document.getElementById("date-end-input").classList.add('not-visible')
+                document.getElementById("date-end-input-label").classList.add('not-visible')
+                document.getElementById("max-date-end-input-label").classList.add('not-visible')
+                document.getElementById("date-start-input-label").classList.add('not-visible')
+                document.getElementById("min-date-start-input-label").classList.add('not-visible')
+            } else {
+                document.getElementById("date-start-input").classList.remove('not-visible')
+                document.getElementById("date-end-input").classList.remove('not-visible')
+                document.getElementById("date-end-input-label").classList.remove('not-visible')
+                document.getElementById("max-date-end-input-label").classList.remove('not-visible')
+                document.getElementById("date-start-input-label").classList.remove('not-visible')
+                document.getElementById("min-date-start-input-label").classList.remove('not-visible')
+            }
+
+        }
+
+        changePeriod(document.getElementById("period-list").selectedIndex)
+
+        document.getElementById('date-start-input').value = param['start_date']
+        document.getElementById('date-end-input').value = param['end_date']
+
+
+    </script>
+
+    <script type="text/javascript">
+
+
+        function showSpinner() {
+            document.getElementById('spinner-box').classList.remove('not-visible')
+            document.getElementById('container_div').classList.add('not-visible')
+            document.getElementById('savingBtn').classList.add('not-visible')
+
+        }
+
+        function disableContainer() {
+            document.getElementById('container_div').classList.add('not-visible')
+            document.getElementById('savingBtn').classList.add('not-visible')
+
+        }
+
+
+        $.ajax({
+            type: 'GET',
+            url: '/training/',
+            success: function (response) {
+                document.getElementById('spinner-box').classList.add('not-visible')
+                document.getElementById('container_div').classList.remove('not-visible')
+                document.getElementById('savingBtn').classList.remove('not-visible')
+            },
+            error: function (error) {
+                console.log(error)
+
+            }
+        })
+
+
+    </script>
+
+
+{% endblock %}
