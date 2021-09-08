@@ -240,7 +240,7 @@
         setSelectedValue(periodSelect, param['period_type']);
 
         var algorithms = new Array();
-        algorithms[0] = ['SARIMA', 'Holt Winters'];
+        algorithms[0] = ['SARIMA', 'Holt Winters','LSTM'];
         algorithms[1] = ['Random Forest', 'MARS'];
 
         function changePeriod(index) {
@@ -521,13 +521,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -643,13 +644,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -763,13 +765,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -884,13 +887,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -1005,13 +1009,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -1126,13 +1131,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -1246,13 +1252,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];
@@ -1365,13 +1372,14 @@
                 {
                     name: '歷史存貨',
                     data: history_data,
+                    visible: false
                 },
                 {
                     name: '預測存貨',
                     data: predicttion_data,
                 },
                 {
-                    name: '預測營收',
+                    name: '預測累計營收',
                     data: revenue_data,
                 },
             ];

@@ -15,7 +15,7 @@ from statsmodels.tsa.api import ExponentialSmoothing, SARIMAX
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
-# import pyearth
+import pyearth
 import joblib
 
 from .models import ModelSave, ModelStandardized
@@ -295,26 +295,27 @@ class ModelLoadPred:
 
                 relevant_path = os.path.join(BASE_DIR, "media")
 
-                included_extensions = ['h5']
-                file_names = [fn for fn in os.listdir(relevant_path)
-                              if any(fn.endswith(ext) for ext in included_extensions)]
-                file_name = ''
-                for i in file_names:
-                    if self.cost_type in i:
-                        file_name = i
+                # included_extensions = ['h5']
+                # file_names = [fn for fn in os.listdir(relevant_path)
+                #               if any(fn.endswith(ext) for ext in included_extensions)]
+                # file_name = ''
+                # for i in file_names:
+                #     if self.cost_type == i.replace('.h5',''):
+                #         file_name = i
 
-                model_path = os.path.join(BASE_DIR, "media") + '/' + file_name
+                model_path = os.path.join(BASE_DIR, "media") + '/' + self.cost_type + str('-LSTM.h5')
+                # print(model_path)
 
                 fit1 = load_model(model_path)
 
-                std_str_start = file_name.find('-s[')
-                std_str_end = file_name.find(']s')
+                # model_name = file_name.replace('.h5','')
 
-                mean_str_start = file_name.find('-m[')
-                mean_str_end = file_name.find(']m')
+                md1 = ModelStandardized.objects.filter(model_name=self.cost_type + str('-LSTM'), feature=self.cost_type, flag=True)
+                print('mean' + str(md1[0].mean))
+                print('std' + str(md1[0].std))
 
-                self.mean_data = float(file_name[(mean_str_start + 3):mean_str_end])
-                self.std_data = float(file_name[(std_str_start + 3):std_str_end])
+                self.mean_data = float(md1[0].mean)
+                self.std_data = float(md1[0].std)
                 self.data = (self.data - self.mean_data) / self.std_data
 
                 target_tmp = self.data.values
@@ -345,9 +346,6 @@ class ModelLoadPred:
                     end_index=len(target_t) - (len(target_t) - self.delay - self.length) - 1,
                     batch_size=self.batch_size)
 
-
-
-
                 time_start = datetime.strptime(self.predict_start, "%Y-%m-%d")
 
                 time_end = time_start + relativedelta(months=11)
@@ -368,27 +366,27 @@ class ModelLoadPred:
                 fit1 = joblib.load(model_path)
                 y_hat =fit1.predict(self.data)[0]
 
-            # elif self.algorithm == '1':
-            #     method_name = 'MARS'
+            elif self.algorithm == '1':
+                method_name = 'MARS'
 
-            #     model_path = os.path.join(BASE_DIR, "media") + '/' + str(self.cost_type) + '-' + str(
-            #         method_name) + '.mod'
+                model_path = os.path.join(BASE_DIR, "media") + '/' + str(self.cost_type) + '-' + str(
+                    method_name) + '.mod'
 
-            #     model_name = str(self.cost_type) + '-' + str(method_name)
+                model_name = str(self.cost_type) + '-' + str(method_name)
 
-            #     md1 = ModelStandardized.objects.filter(model_name=model_name, flag=True)
+                md1 = ModelStandardized.objects.filter(model_name=model_name, flag=True)
 
-            #     c = 0
-            #     for i in md1:
-            #         if i.feature is not 'y':
-            #             self.data[0][c] = (self.data[0][c] - i.mean) / i.std
-            #             c = c + 1
-            #         else:
-            #             y_mean = float(i.mean)
-            #             y_std = float(i.std)
+                c = 0
+                for i in md1:
+                    if i.feature is not 'y':
+                        self.data[0][c] = (self.data[0][c] - i.mean) / i.std
+                        c = c + 1
+                    else:
+                        y_mean = float(i.mean)
+                        y_std = float(i.std)
 
-            #     fit1 = joblib.load(model_path)
-            #     y_hat = fit1.predict(self.data)[0] * y_std + y_mean
+                fit1 = joblib.load(model_path)
+                y_hat = fit1.predict(self.data)[0] * y_std + y_mean
 
 
 
@@ -416,9 +414,9 @@ class ModelSaving:
             elif self.algorithm == '2':
                 method_name = 'LSTM'
                 for i in file_names:
-                    if ('temp_' not in i) and (method_name in i) and (self.cost_type in i):
-                        os.remove(model_path+i)
-                    elif ('temp_' in i) and (method_name in i):
+                    # if ('temp_' not in i) and (method_name in i) and (self.cost_type == i.replace('.h5')):
+                    #     os.remove(model_path+i)
+                    if ('temp_' in i) and (method_name in i):
                         model_name = i.replace('.h5','').replace('temp_','')
 
                         if ModelStandardized.objects.filter(model_name=model_name, flag=True).exists():

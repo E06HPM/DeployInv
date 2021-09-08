@@ -79,22 +79,22 @@ WSGI_APPLICATION = 'INVT.wsgi.application'
 
 DATABASES = {
 
-    # 'default': {
-    #     'ENGINE': 'sql_server.pyodbc',  # odbc連線固定寫法
-    #     'NAME': 'INV',  # 自定義資料庫連線名
-    #     'USER': 'danny',  # 資料庫連線賬戶
-    #     'PASSWORD': '123456789',  # 資料庫連線密碼
-    #     'HOST': 'DESKTOP-5QUD3N8\SQLEXPRESS',  # 資料庫服務地址
-    #     'PORT': '',  # 資料庫連線埠
-    #     'OPTIONS': {
-    #         'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-    #         'MARS_Connection': True,
-    #     }
-    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'sql_server.pyodbc',  # odbc連線固定寫法
+        'NAME': 'INV',  # 自定義資料庫連線名
+        'USER': 'danny',  # 資料庫連線賬戶
+        'PASSWORD': '123456789',  # 資料庫連線密碼
+        'HOST': '192.168.50.175',  # 資料庫服務地址
+        'PORT': '1433',  # 資料庫連線埠
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
+            'MARS_Connection': True,
+        }
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    # }
 }
 
 

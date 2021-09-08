@@ -90,115 +90,118 @@ def predict(request):
         latest_data = datetime.now() + relativedelta(months=6)
         str_latest_data = str(latest_data.year) + '-' + str(latest_data.month)
 
-        try:
+        # try:
 
-            if request.method == 'POST':
-                period_type = request.POST['name_period']
-                post_training = True
+        if request.method == 'POST':
+            period_type = request.POST['name_period']
+            post_training = True
 
-                params['period_type'] = period_type
+            params['period_type'] = period_type
 
-                if period_type == '0':  # multiple
+            if period_type == '0':  # multiple
 
-                    date_max = False
-                    date_min = False
-                    algorithm_type = request.POST['name_algorithm']
-                    params['algorithm_type'] = algorithm_type
-                    date_start = request.POST['name_date_start']
-                    date_end = request.POST['name_date_end']
+                date_max = False
+                date_min = False
+                algorithm_type = request.POST['name_algorithm']
+                params['algorithm_type'] = algorithm_type
+                date_start = request.POST['name_date_start']
+                date_end = request.POST['name_date_end']
 
-                    if date_start == '' or date_end == '':
-                        post_training = False
-                        param = json.dumps(params)
-                        messages.add_message(request, messages.WARNING, '填入資料不正確')
-                        return render(request, 'predict.html', locals())
-                    else:
-                        date_start = date_start + '-01'
-                        date_end = date_end + '-01'
-                        date_start = datetime.strptime(str(date_start), "%Y-%m-%d").date()
-                        date_end = datetime.strptime(str(date_end), "%Y-%m-%d").date()
-                        str_min_data = str(date_start.year) + '-' + str(date_start.month)
-                        str_latest_data = str(date_end.year) + '-' + str(date_end.month)
-                        rawdata = models.Rawdata.objects.all()
-                        date_min = min_date > date_start
+                if date_start == '' or date_end == '':
+                    post_training = False
+                    param = json.dumps(params)
+                    messages.add_message(request, messages.WARNING, '填入資料不正確')
+                    return render(request, 'predict.html', locals())
+                else:
+                    date_start = date_start + '-01'
+                    date_end = date_end + '-01'
+                    date_start = datetime.strptime(str(date_start), "%Y-%m-%d").date()
+                    date_end = datetime.strptime(str(date_end), "%Y-%m-%d").date()
+                    str_min_data = str(date_start.year) + '-' + str(date_start.month)
+                    str_latest_data = str(date_end.year) + '-' + str(date_end.month)
+                    rawdata = models.Rawdata.objects.all()
+                    date_min = min_date > date_start
 
-                        time_start = str(min_date)  # 輸入資料起始時間
-                        point_time_start = time_start.replace('-', '/')
-                        time_end = str(max_date)  # 輸入資料結束時間
-                        predict_start = str(date_start)  # 決定訓練集要起始時間
-                        predcit_end = str(date_end)  # 決定訓練集要結束時間
-                        orig_year = min_date.year
-                        orig_month = min_date.month
-                        pred_year = date_start.year
-                        pred_month = date_start.month
+                    time_start = str(min_date)  # 輸入資料起始時間
+                    point_time_start = time_start.replace('-', '/')
+                    time_end = str(max_date)  # 輸入資料結束時間
+                    predict_start = str(date_start)  # 決定訓練集要起始時間
+                    predcit_end = str(date_end)  # 決定訓練集要結束時間
+                    orig_year = min_date.year
+                    orig_month = min_date.month
+                    pred_year = date_start.year
+                    pred_month = date_start.month
 
-                        result_pred = dict()
+                    result_pred = dict()
 
-                        for i in ref_cost.keys():
-                            cost_type = i
-                            data = pd.DataFrame(rawdata.values('date', cost_type))
-                            data = dp.history_data_covert(data, cost_type)
-                            pred_obj = ai.ModelLoadPred(data, cost_type, period_type, algorithm_type, predict_start,
-                                                        predcit_end)
-                            pred_obj = pred_obj.load_pred()
-                            pred_obj = pred_obj.squeeze()
-
-                            if cost_type == 'revenue':
-                                result_pred[i] = dp.data_for_ploting(pred_obj)
-                            else:
-                                result_pred[i] = dp.data_for_ploting(pred_obj)
-                                result_pred['orig_' + i] = dp.data_for_ploting(data)
-
-
-                elif period_type == '1':
-
-                    single_output = {'raw_mat_cost_wo': 0,
-                                     'semi_fin_prod_cost_wo': 0,
-                                     'wip_prod_cost_wo': 0,
-                                     'invt_cost_wo': 0,
-                                     'raw_mat_cost': 0,
-                                     'semi_fin_prod_cost': 0,
-                                     'wip_prod_cost': 0,
-                                     'invt_cost': 0,
-                                     'revenue': 0
-                                     }
-
-                    period_type = request.POST['name_period']
-                    params['period_type'] = period_type
-                    algorithm_type = request.POST['name_algorithm']
-                    params['algorithm_type'] = algorithm_type
-
-                    params['date_input'] = request.POST['name_date_input']
-                    params['requisition_qty'] = request.POST['name_requisition_qty']
-                    params['request_qty'] = request.POST['name_request_qty']
-                    params['scrapped_amount'] = request.POST['name_scrapped_amount']
-                    params['request_amount'] = request.POST['name_request_amount']
-
-                    x0 = request.POST['name_date_input'] + '-01'
-                    x2 = int(request.POST['name_requisition_qty'])
-                    x3 = int(request.POST['name_request_qty'])
-                    x4 = int(request.POST['name_scrapped_amount'])
-                    x5 = int(request.POST['name_request_amount'])
-
-                    datecoder = pd.DataFrame(models.DateEncoder.objects.all().values())
-                    x0 = int(datecoder[datecoder['date'] == pd.to_datetime(x0)]['encoder'].values)
-                    data = np.array([x0, x2, x3, x4, x5])
-                    data = data.reshape(1, 5)
-
-                    for i in single_output.keys():
+                    for i in ref_cost.keys():
+                        print(i)
                         cost_type = i
-                        pred_obj = ai.ModelLoadPred(data, cost_type, period_type, '0', x0, x0)
-                        single_output[cost_type] = int(pred_obj.load_pred())
+                        data = pd.DataFrame(rawdata.values('date', cost_type))
+                        data = dp.history_data_covert(data, cost_type)
+                        pred_obj = ai.ModelLoadPred(data, cost_type, period_type, algorithm_type, predict_start,
+                                                    predcit_end)
+                        pred_obj = pred_obj.load_pred()
+                        pred_obj = pred_obj.squeeze()
 
-                    single_output = json.dumps(single_output)
 
-            param = json.dumps(params)
+                        if cost_type == 'revenue':
+                            
+                            result_pred[i] = dp.data_for_ploting(pred_obj.cumsum(axis=0))
+                        else:
+                            result_pred[i] = dp.data_for_ploting(pred_obj)
+                            result_pred['orig_' + i] = dp.data_for_ploting(data)
 
-        except:
-            post_training = False
-            param = json.dumps(params)
-            messages.add_message(request, messages.WARNING, '填入資料不正確')
-            return render(request, 'predict.html', locals())
+
+            elif period_type == '1':
+
+                single_output = {'raw_mat_cost_wo': 0,
+                                    'semi_fin_prod_cost_wo': 0,
+                                    'wip_prod_cost_wo': 0,
+                                    'invt_cost_wo': 0,
+                                    'raw_mat_cost': 0,
+                                    'semi_fin_prod_cost': 0,
+                                    'wip_prod_cost': 0,
+                                    'invt_cost': 0,
+                                    'revenue': 0
+                                    }
+
+                period_type = request.POST['name_period']
+                params['period_type'] = period_type
+                algorithm_type = request.POST['name_algorithm']
+                params['algorithm_type'] = algorithm_type
+
+                params['date_input'] = request.POST['name_date_input']
+                params['requisition_qty'] = request.POST['name_requisition_qty']
+                params['request_qty'] = request.POST['name_request_qty']
+                params['scrapped_amount'] = request.POST['name_scrapped_amount']
+                params['request_amount'] = request.POST['name_request_amount']
+
+                x0 = request.POST['name_date_input'] + '-01'
+                x2 = int(request.POST['name_requisition_qty'])
+                x3 = int(request.POST['name_request_qty'])
+                x4 = int(request.POST['name_scrapped_amount'])
+                x5 = int(request.POST['name_request_amount'])
+
+                datecoder = pd.DataFrame(models.DateEncoder.objects.all().values())
+                x0 = int(datecoder[datecoder['date'] == pd.to_datetime(x0)]['encoder'].values)
+                data = np.array([x0, x2, x3, x4, x5])
+                data = data.reshape(1, 5)
+
+                for i in single_output.keys():
+                    cost_type = i
+                    pred_obj = ai.ModelLoadPred(data, cost_type, period_type, '0', x0, x0)
+                    single_output[cost_type] = int(pred_obj.load_pred())
+
+                single_output = json.dumps(single_output)
+
+        param = json.dumps(params)
+
+        # except:
+        #     post_training = False
+        #     param = json.dumps(params)
+        #     messages.add_message(request, messages.WARNING, '填入資料不正確')
+        #     return render(request, 'predict.html', locals())
 
 
     return render(request, 'predict.html', locals())
